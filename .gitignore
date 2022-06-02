@@ -45,3 +45,7 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Flask Web Server
+venv/
+files/

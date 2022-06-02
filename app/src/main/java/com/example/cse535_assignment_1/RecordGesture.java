@@ -123,9 +123,8 @@ public class RecordGesture extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             try {
-
 //                String url = "http://10.218.107.121/cse535/upload_video.php";
-                String url = "https://192.168.0.10/cse535/upload_video.php";
+                String url = "http://192.168.0.252:8085";
                 String charset = "UTF-8";
                 String group_id = "1";
                 String ASUid = "1219367110";
@@ -167,7 +166,7 @@ public class RecordGesture extends AppCompatActivity {
 
                     // Send video file.
                     writer.append("--").append(boundary).append(CRLF);
-                    writer.append("Content-Disposition: form-data; name=\"uploaded_file\"; filename=\"").append(videoFile.getName()).append("\"").append(CRLF);
+                    writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(videoFile.getName()).append("\"").append(CRLF);
                     writer.append("Content-Type: video/mp4; charset=").append(charset).append(CRLF); // Text file itself must be saved in this charset!
                     writer.append(CRLF).flush();
                     FileInputStream vf = new FileInputStream(videoFile);
