@@ -1,14 +1,14 @@
 package com.example.cse535_assignment_1;
 
+import static com.example.cse535_assignment_1.Utils.practiceCount;
+
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -16,31 +16,21 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RecordGesture extends AppCompatActivity {
-    private static final int VIDEO_CAPTURE = 101;
-    private static final int CAMERA_PERMISSION_CODE = 100;
     public static String Action;
-    protected HashMap<String, Integer> COUNT = new HashMap<String, Integer>();
-
+    private final String LOG_TAG = "RECORD_GESTURE";
     private Uri fileUri;
     ActivityResultLauncher<Intent> activityResultLaunch = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -50,8 +40,8 @@ public class RecordGesture extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK) {
                         Intent videoPath = result.getData();
                         fileUri = videoPath.getData();
-                        Toast.makeText(getBaseContext(), "Video Recorded Successfully. Path: " + fileUri, Toast.LENGTH_LONG).show();
-                        Log.i("VIDEO_RECORD_TAG", "Video Recorded Successfully. Path: " + fileUri);
+                        Toast.makeText(getBaseContext(), "Video Recorded Successfully. Path- " + fileUri, Toast.LENGTH_LONG).show();
+                        Log.i(LOG_TAG, "Video Recorded Successfully. Path: " + fileUri);
                     } else if (result.getResultCode() == RESULT_CANCELED) {
                         Toast.makeText(getBaseContext(), "Video recording cancelled.", Toast.LENGTH_LONG).show();
                     } else {
@@ -59,7 +49,6 @@ public class RecordGesture extends AppCompatActivity {
                     }
                 }
             });
-    private String filesPath, fileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,24 +58,17 @@ public class RecordGesture extends AppCompatActivity {
         Button record = findViewById(R.id.record);
         Button upload = findViewById(R.id.upload);
 
-        if(!hasCamera()){
+        if (!hasCamera()) {
             record.setEnabled(false);
         }
 
-        record.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startRecording();
-            }
-        });
+        record.setOnClickListener(view -> startRecording());
 
-        upload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                UploadTask up1 = new UploadTask();
-                Toast.makeText(getApplicationContext(), "Starting to Upload", Toast.LENGTH_LONG).show();
-                up1.execute();
-            }
+        upload.setOnClickListener(view -> {
+            UploadTask up1 = new UploadTask();
+            Toast.makeText(getApplicationContext(), "Starting to Upload", Toast.LENGTH_LONG).show();
+            up1.execute();
+            Toast.makeText(RecordGesture.this, "File uploaded successfully", Toast.LENGTH_LONG).show();
         });
 
 
@@ -97,29 +79,12 @@ public class RecordGesture extends AppCompatActivity {
                 PackageManager.FEATURE_CAMERA_ANY);
     }
 
-//    private void getCameraPermission() {
-//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
-//                == PackageManager.PERMISSION_DENIED) {
-//
-//            ActivityCompat.requestPermissions(this, new String[]
-//                    {android.Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-//        }
-//    }
 
     public void startRecording() {
-//        String mediaPathname = Environment.getExternalStorageDirectory().getAbsolutePath() + "/GESTURE_PRACTICE_(Practice Number)Raj.mp4";
-//        File mediaFile = new File(mediaPathname);
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
         //Setting Specific Video Duration
         intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 3);
-
-        // To save file with specific name
-//        fileUri = Uri.fromFile(mediaFile);
-//        fileUri = FileProvider.getUriForFile(RecordGesture.this, BuildConfig.APPLICATION_ID + ".provider", mediaFile);
-//        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
         activityResultLaunch.launch(intent);
     }
 
@@ -129,15 +94,16 @@ public class RecordGesture extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             try {
+                // Set Flask web-server URL
                 String url = "http://192.168.0.252:8085";
                 String charset = "UTF-8";
                 String group_id = "1";
                 String ASUid = "1219367110";
                 String accept = "1";
 
-
-//                File videoFile = new File(Environment.getExternalStorageDirectory() + "/my_folder/Action1.mp4");
                 InputStream videoInputStream = getContentResolver().openInputStream(fileUri);
+                String videoFileName = "GESTURE_PRACTICE_" + practiceCount.getAndIncrement() + "_RAJ.mp4";
+
                 String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
                 String CRLF = "\r\n"; // Line separator required by multipart/form-data.
 
@@ -172,10 +138,9 @@ public class RecordGesture extends AppCompatActivity {
 
                     // Send video file.
                     writer.append("--").append(boundary).append(CRLF);
-                    writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append("random.mp4").append("\"").append(CRLF);
+                    writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(videoFileName).append("\"").append(CRLF);
                     writer.append("Content-Type: video/mp4; charset=").append(charset).append(CRLF); // Text file itself must be saved in this charset!
                     writer.append(CRLF).flush();
-//                    FileInputStream vf = new FileInputStream(videoFile);
                     try {
                         byte[] buffer = new byte[1024];
                         int bytesRead = 0;
@@ -183,36 +148,26 @@ public class RecordGesture extends AppCompatActivity {
                             output.write(buffer, 0, bytesRead);
 
                         }
-                        //   output.close();
-                        //Toast.makeText(getApplicationContext(),"Read Done", Toast.LENGTH_LONG).show();
                     } catch (Exception exception) {
-
-
-                        //Toast.makeText(getApplicationContext(),"output exception in catch....."+ exception + "", Toast.LENGTH_LONG).show();
-                        Log.d("Error", String.valueOf(exception));
+                        Log.e(LOG_TAG, String.valueOf(exception));
                         publishProgress(String.valueOf(exception));
-                        // output.close();
-
                     }
 
                     output.flush(); // Important before continuing with writer!
                     writer.append(CRLF).flush(); // CRLF is important! It indicates end of boundary.
 
-
                     // End of multipart/form-data.
                     writer.append("--").append(boundary).append("--").append(CRLF).flush();
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(LOG_TAG, String.valueOf(e));
                 }
 
                 // Request is lazily fired whenever you need to obtain information about response.
                 int responseCode = ((HttpURLConnection) connection).getResponseCode();
-                System.out.println(responseCode); // Should be 200
 
+                Log.i(LOG_TAG, "Server video upload response code: " + responseCode); // Should be 200
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(LOG_TAG, String.valueOf(e));
             }
 
             return null;
