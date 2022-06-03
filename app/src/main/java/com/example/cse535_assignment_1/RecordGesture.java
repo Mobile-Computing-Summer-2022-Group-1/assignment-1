@@ -32,6 +32,7 @@ public class RecordGesture extends AppCompatActivity {
     public static String Action;
     private final String LOG_TAG = "RECORD_GESTURE";
     private Uri fileUri;
+    String action;
     ActivityResultLauncher<Intent> activityResultLaunch = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -58,6 +59,10 @@ public class RecordGesture extends AppCompatActivity {
         Button record = findViewById(R.id.record);
         Button upload = findViewById(R.id.upload);
 
+        //Saving the chosen Gesture action
+        Intent i = getIntent();
+        action = i.getStringExtra(Action);
+
         if (!hasCamera()) {
             record.setEnabled(false);
         }
@@ -69,6 +74,9 @@ public class RecordGesture extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Starting to Upload", Toast.LENGTH_LONG).show();
             up1.execute();
             Toast.makeText(RecordGesture.this, "File uploaded successfully", Toast.LENGTH_LONG).show();
+            //GO Back To 1st Page
+            Intent intent = new Intent(RecordGesture.this, MainActivity.class);
+            startActivity(intent);
         });
 
 
@@ -95,14 +103,14 @@ public class RecordGesture extends AppCompatActivity {
         protected String doInBackground(String... strings) {
             try {
                 // Set Flask web-server URL
-                String url = "http://192.168.0.252:8085";
+                String url = "http://192.168.0.10:8085";
                 String charset = "UTF-8";
                 String group_id = "1";
                 String ASUid = "1219367110";
                 String accept = "1";
 
                 InputStream videoInputStream = getContentResolver().openInputStream(fileUri);
-                String videoFileName = "GESTURE_PRACTICE_" + practiceCount.getAndIncrement() + "_RAJ.mp4";
+                String videoFileName = action+ "_" + practiceCount.getAndIncrement() + "_MUKHERJEE.mp4";
 
                 String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
                 String CRLF = "\r\n"; // Line separator required by multipart/form-data.

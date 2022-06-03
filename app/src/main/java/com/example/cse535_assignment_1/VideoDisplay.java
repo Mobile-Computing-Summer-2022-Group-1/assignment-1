@@ -54,7 +54,7 @@ public class VideoDisplay extends AppCompatActivity {
             progressBar.setVisibility(View.GONE);
         });
 
-        //TO go back to the 1st Page
+        //TO go to the Next Page i.e Recording and Uploading Page
         practice.setOnClickListener(v -> {
             Intent intent = new Intent(VideoDisplay.this, RecordGesture.class);
             intent.putExtra(RecordGesture.Action, action);
