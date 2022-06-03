@@ -97,8 +97,9 @@ public class MainActivity extends AppCompatActivity {
                     String signText = parent.getSelectedItem().toString();
                     String videoUrl = signUrls.get(signText);
                     Intent intent = new Intent(MainActivity.this, VideoDisplay.class);
-                    intent.putExtra(VideoDisplay.URL, videoUrl);
-                    intent.putExtra(VideoDisplay.Action, item);
+                    String action_url = item + "&" + videoUrl;
+                    System.out.println(action_url);
+                    intent.putExtra(VideoDisplay.GESTURE_URL, action_url);
                     startActivity(intent);
                 }
 

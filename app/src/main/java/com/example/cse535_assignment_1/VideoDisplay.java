@@ -12,9 +12,9 @@ import android.widget.VideoView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class VideoDisplay extends AppCompatActivity {
-    public static String URL;
-    public static String Action;
-    String url, action;
+    public static String GESTURE_URL;
+    String url, action, gesture_url;
+
     Button back, play, practice;
     VideoView videoView;
 
@@ -37,8 +37,12 @@ public class VideoDisplay extends AppCompatActivity {
 
         // Setting the Chosen Video URL
         Intent i = getIntent();
-        url = i.getStringExtra(URL);
-        action = i.getStringExtra(Action);
+        gesture_url = i.getStringExtra(GESTURE_URL);
+        String[] arrOfStr = gesture_url.split("&");
+        action = arrOfStr[0];
+        url = arrOfStr[1];
+        System.out.println(action);
+        System.out.println(url);
         Uri uri = Uri.parse(url);
         videoView.setVideoURI(uri);
         videoView.requestFocus();
