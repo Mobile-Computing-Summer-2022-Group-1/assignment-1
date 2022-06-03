@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CSE535_Assignment_1</string>
+    <string name="app_name">CSE535 Assignment 1</string>
     <string name="button_practice">Practice</string>
     <string name="button_back">Back</string>
     <string name="button_record">Record</string>

@@ -1,12 +1,5 @@
 package com.example.cse535_assignment_1;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.Manifest;
-import android.media.MediaPlayer;
-import android.os.Build;
-import android.os.Bundle;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -19,9 +12,20 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -31,28 +35,39 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.FileProvider;
-import android.os.Environment;
-
 public class RecordGesture extends AppCompatActivity {
-    private Uri fileUri;
-    public static String Action;
-    private String filesPath, fileName;
-    protected HashMap<String, Integer> COUNT = new HashMap<String, Integer>();
     private static final int VIDEO_CAPTURE = 101;
+    private static final int CAMERA_PERMISSION_CODE = 100;
+    public static String Action;
+    protected HashMap<String, Integer> COUNT = new HashMap<String, Integer>();
+
+    private Uri fileUri;
+    ActivityResultLauncher<Intent> activityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Intent videoPath = result.getData();
+                        fileUri = videoPath.getData();
+                        Toast.makeText(getBaseContext(), "Video Recorded Successfully. Path: " + fileUri, Toast.LENGTH_LONG).show();
+                        Log.i("VIDEO_RECORD_TAG", "Video Recorded Successfully. Path: " + fileUri);
+                    } else if (result.getResultCode() == RESULT_CANCELED) {
+                        Toast.makeText(getBaseContext(), "Video recording cancelled.", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getBaseContext(), "Failed to record video", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+    private String filesPath, fileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record_gesture);
 
-        Button record = (Button) findViewById(R.id.record);
-        Button upload = (Button) findViewById(R.id.upload);
+        Button record = findViewById(R.id.record);
+        Button upload = findViewById(R.id.upload);
 
         if(!hasCamera()){
             record.setEnabled(false);
@@ -69,7 +84,7 @@ public class RecordGesture extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 UploadTask up1 = new UploadTask();
-                Toast.makeText(getApplicationContext(),"Stating to Upload",Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Starting to Upload", Toast.LENGTH_LONG).show();
                 up1.execute();
             }
         });
@@ -78,52 +93,42 @@ public class RecordGesture extends AppCompatActivity {
     }
 
     private boolean hasCamera() {
-        if (getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA_ANY)){
-            return true;
-        } else {
-            return false;
-        }
+        return getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA_ANY);
     }
 
+//    private void getCameraPermission() {
+//        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+//                == PackageManager.PERMISSION_DENIED) {
+//
+//            ActivityCompat.requestPermissions(this, new String[]
+//                    {android.Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+//        }
+//    }
+
     public void startRecording() {
-//        File mediaFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/GESTURE_PRACTICE_(Practice Number)_USERLASTNAME.mp4");
-
-
+//        String mediaPathname = Environment.getExternalStorageDirectory().getAbsolutePath() + "/GESTURE_PRACTICE_(Practice Number)Raj.mp4";
+//        File mediaFile = new File(mediaPathname);
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
 
         //Setting Specific Video Duration
-        intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT,3);
+        intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, 3);
 
         // To save file with specific name
 //        fileUri = Uri.fromFile(mediaFile);
+//        fileUri = FileProvider.getUriForFile(RecordGesture.this, BuildConfig.APPLICATION_ID + ".provider", mediaFile);
 //        intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         activityResultLaunch.launch(intent);
     }
 
-    ActivityResultLauncher<Intent> activityResultLaunch = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            new ActivityResultCallback<ActivityResult>() {
-                @Override
-                public void onActivityResult(ActivityResult result) {
-                    if (result.getResultCode() == RESULT_OK) {
-                        Intent videoPath = result.getData();
-                        Toast.makeText(getBaseContext(), "Path:\n" + videoPath, Toast.LENGTH_LONG).show();
-                    } else if (result.getResultCode() == RESULT_CANCELED) {
-                        Toast.makeText(getBaseContext(), "Video recording cancelled.", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getBaseContext(), "Failed to record video", Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
 
     public class UploadTask extends AsyncTask<String, String, String> {
 
         @Override
         protected String doInBackground(String... strings) {
             try {
-//                String url = "http://10.218.107.121/cse535/upload_video.php";
                 String url = "http://192.168.0.252:8085";
                 String charset = "UTF-8";
                 String group_id = "1";
@@ -131,7 +136,8 @@ public class RecordGesture extends AppCompatActivity {
                 String accept = "1";
 
 
-                File videoFile = new File(Environment.getExternalStorageDirectory()+"/my_folder/Action1.mp4");
+//                File videoFile = new File(Environment.getExternalStorageDirectory() + "/my_folder/Action1.mp4");
+                InputStream videoInputStream = getContentResolver().openInputStream(fileUri);
                 String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
                 String CRLF = "\r\n"; // Line separator required by multipart/form-data.
 
@@ -143,7 +149,7 @@ public class RecordGesture extends AppCompatActivity {
 
                 try (
                         OutputStream output = connection.getOutputStream();
-                        PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true);
+                        PrintWriter writer = new PrintWriter(new OutputStreamWriter(output, charset), true)
                 ) {
                     // Send normal accept.
                     writer.append("--").append(boundary).append(CRLF);
@@ -166,22 +172,20 @@ public class RecordGesture extends AppCompatActivity {
 
                     // Send video file.
                     writer.append("--").append(boundary).append(CRLF);
-                    writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(videoFile.getName()).append("\"").append(CRLF);
+                    writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append("random.mp4").append("\"").append(CRLF);
                     writer.append("Content-Type: video/mp4; charset=").append(charset).append(CRLF); // Text file itself must be saved in this charset!
                     writer.append(CRLF).flush();
-                    FileInputStream vf = new FileInputStream(videoFile);
+//                    FileInputStream vf = new FileInputStream(videoFile);
                     try {
                         byte[] buffer = new byte[1024];
                         int bytesRead = 0;
-                        while ((bytesRead = vf.read(buffer, 0, buffer.length)) >= 0)
-                        {
+                        while ((bytesRead = videoInputStream.read(buffer, 0, buffer.length)) >= 0) {
                             output.write(buffer, 0, bytesRead);
 
                         }
                         //   output.close();
                         //Toast.makeText(getApplicationContext(),"Read Done", Toast.LENGTH_LONG).show();
-                    }catch (Exception exception)
-                    {
+                    } catch (Exception exception) {
 
 
                         //Toast.makeText(getApplicationContext(),"output exception in catch....."+ exception + "", Toast.LENGTH_LONG).show();

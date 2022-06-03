@@ -48,4 +48,4 @@ google-services.json
 
 # Flask Web Server
 venv/
-files/
+uploaded_files/

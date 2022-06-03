@@ -1,8 +1,8 @@
 import os
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = 'files'
+UPLOAD_FOLDER = 'uploaded_files'
 ALLOWED_EXTENSIONS = {'mp4'}
 
 app = Flask(__name__)
@@ -50,3 +50,7 @@ def upload_file():
       <input type=submit value=Upload>
     </form>
     '''
+
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
