@@ -26,7 +26,6 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class RecordGesture extends AppCompatActivity {
     public static String Action;
@@ -57,6 +56,7 @@ public class RecordGesture extends AppCompatActivity {
 
         Button record = findViewById(R.id.record);
         Button upload = findViewById(R.id.upload);
+        Button home = findViewById(R.id.homeBtn);
 
         if (!hasCamera()) {
             record.setEnabled(false);
@@ -71,6 +71,11 @@ public class RecordGesture extends AppCompatActivity {
             Toast.makeText(RecordGesture.this, "File uploaded successfully", Toast.LENGTH_LONG).show();
         });
 
+        home.setOnClickListener(view -> {
+            // Going back to screen-1
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        });
 
     }
 
