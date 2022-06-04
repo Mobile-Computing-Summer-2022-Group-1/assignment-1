@@ -62,6 +62,7 @@ public class VideoDisplay extends AppCompatActivity {
         practice.setOnClickListener(v -> {
             Intent intent = new Intent(VideoDisplay.this, RecordGesture.class);
             intent.putExtra(RecordGesture.Action, action);
+            intent.putExtra(RecordGesture.ORIGINAL_VIDEO_URL, url);
             startActivity(intent);
         });
     }

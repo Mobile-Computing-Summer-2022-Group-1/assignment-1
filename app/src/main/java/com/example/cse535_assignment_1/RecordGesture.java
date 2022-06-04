@@ -1,7 +1,7 @@
 package com.example.cse535_assignment_1;
 
-import static com.example.cse535_assignment_1.Utils.practiceCount;
 import static com.example.cse535_assignment_1.Utils.actions_map;
+import static com.example.cse535_assignment_1.Utils.practiceCount;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,8 +10,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.MediaController;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
@@ -30,9 +34,12 @@ import java.net.URLConnection;
 
 public class RecordGesture extends AppCompatActivity {
     public static String Action;
+    public static String ORIGINAL_VIDEO_URL;
     private final String LOG_TAG = "RECORD_GESTURE";
     String action;
     private Uri fileUri;
+    private VideoView recordingView;
+    private MediaController recordingController;
     ActivityResultLauncher<Intent> activityResultLaunch = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -43,6 +50,20 @@ public class RecordGesture extends AppCompatActivity {
                         fileUri = videoPath.getData();
                         Toast.makeText(getBaseContext(), "Video Recorded Successfully. Path- " + fileUri, Toast.LENGTH_LONG).show();
                         Log.i(LOG_TAG, "Video Recorded Successfully. Path: " + fileUri);
+
+//                         Adding media controllers to recording view
+                        recordingController = new MediaController(RecordGesture.this);
+                        recordingController.setAnchorView(recordingView);
+                        recordingView.setMediaController(recordingController);
+
+                        recordingView.setVisibility(View.VISIBLE);
+                        recordingView.setVideoURI(fileUri);
+                        recordingView.requestFocus();
+
+                        recordingView.setOnPreparedListener(mediaPlayer -> {
+                            recordingView.start();
+                        });
+
                     } else if (result.getResultCode() == RESULT_CANCELED) {
                         Toast.makeText(getBaseContext(), "Video recording cancelled.", Toast.LENGTH_LONG).show();
                     } else {
@@ -51,6 +72,10 @@ public class RecordGesture extends AppCompatActivity {
                 }
             });
 
+    private ProgressBar progressBar;
+    private VideoView originalVideoView;
+    private MediaController origVideoController;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +83,24 @@ public class RecordGesture extends AppCompatActivity {
 
         Button record = findViewById(R.id.record);
         Button upload = findViewById(R.id.upload);
+        recordingView = findViewById(R.id.videoRecordingView);
+        originalVideoView = findViewById(R.id.originalVideoView);
+        progressBar = findViewById(R.id.progressBar);
+
+        // Playing original video selected in previous screen
+        origVideoController = new MediaController(RecordGesture.this);
+        origVideoController.setAnchorView(recordingView);
+        originalVideoView.setMediaController(origVideoController);
+
+        Uri origUri = Uri.parse(getIntent().getStringExtra(ORIGINAL_VIDEO_URL));
+        originalVideoView.setVisibility(View.VISIBLE);
+        originalVideoView.setVideoURI(origUri);
+        originalVideoView.requestFocus();
+
+        originalVideoView.setOnPreparedListener(mediaPlayer -> {
+            originalVideoView.start();
+            progressBar.setVisibility(View.GONE);
+        });
 
         //Saving the chosen Gesture action
         Intent i = getIntent();
@@ -76,9 +119,8 @@ public class RecordGesture extends AppCompatActivity {
             if (!actions_map.containsKey(action)) {
                 practiceCount.set(1);
 //                actions.add(action);
-                actions_map.put(action,1);
-            }
-            else {
+                actions_map.put(action, 1);
+            } else {
                 actions_map.put(action, actions_map.get(action) + 1);
                 practiceCount.set(actions_map.get(action));
             }
