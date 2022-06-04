@@ -1,6 +1,7 @@
 package com.example.cse535_assignment_1;
 
 import static com.example.cse535_assignment_1.Utils.practiceCount;
+import static com.example.cse535_assignment_1.Utils.actions_map;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -26,13 +27,13 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class RecordGesture extends AppCompatActivity {
     public static String Action;
     private final String LOG_TAG = "RECORD_GESTURE";
     private Uri fileUri;
     String action;
+
     ActivityResultLauncher<Intent> activityResultLaunch = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -62,7 +63,6 @@ public class RecordGesture extends AppCompatActivity {
         //Saving the chosen Gesture action
         Intent i = getIntent();
         action = i.getStringExtra(Action);
-
         if (!hasCamera()) {
             record.setEnabled(false);
         }
@@ -70,12 +70,25 @@ public class RecordGesture extends AppCompatActivity {
         record.setOnClickListener(view -> startRecording());
 
         upload.setOnClickListener(view -> {
+            System.out.println("Entering Upload");
+            System.out.println(actions_map);
             UploadTask up1 = new UploadTask();
             Toast.makeText(getApplicationContext(), "Starting to Upload", Toast.LENGTH_LONG).show();
+            if (!actions_map.containsKey(action)) {
+                practiceCount.set(1);
+//                actions.add(action);
+                actions_map.put(action,1);
+            }
+            else {
+                actions_map.put(action, actions_map.get(action) + 1);
+                practiceCount.set(actions_map.get(action));
+            }
             up1.execute();
             Toast.makeText(RecordGesture.this, "File uploaded successfully", Toast.LENGTH_LONG).show();
             //GO Back To 1st Page
             Intent intent = new Intent(RecordGesture.this, MainActivity.class);
+            System.out.println("Going out Upload");
+            System.out.println(actions_map);
             startActivity(intent);
         });
 
