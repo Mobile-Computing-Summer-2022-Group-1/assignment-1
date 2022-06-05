@@ -33,10 +33,11 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public class RecordGesture extends AppCompatActivity {
-    public static String Action;
-    public static String ORIGINAL_VIDEO_URL;
+//    public static String Action;
+//    public static String ORIGINAL_VIDEO_URL;
+    public static String ACTION_URL;
     private final String LOG_TAG = "RECORD_GESTURE";
-    String action;
+    String action, url;
     private Uri fileUri;
     private VideoView recordingView;
     private MediaController recordingController;
@@ -92,7 +93,12 @@ public class RecordGesture extends AppCompatActivity {
         origVideoController.setAnchorView(recordingView);
         originalVideoView.setMediaController(origVideoController);
 
-        Uri origUri = Uri.parse(getIntent().getStringExtra(ORIGINAL_VIDEO_URL));
+        // Getting params from intent
+        Intent i = getIntent();
+        action = i.getStringArrayExtra(ACTION_URL)[0];
+        url = i.getStringArrayExtra(ACTION_URL)[1];
+
+        Uri origUri = Uri.parse(url);
         originalVideoView.setVisibility(View.VISIBLE);
         originalVideoView.setVideoURI(origUri);
         originalVideoView.requestFocus();
@@ -103,8 +109,6 @@ public class RecordGesture extends AppCompatActivity {
         });
 
         //Saving the chosen Gesture action
-        Intent i = getIntent();
-        action = i.getStringExtra(Action);
         if (!hasCamera()) {
             record.setEnabled(false);
         }
@@ -162,7 +166,7 @@ public class RecordGesture extends AppCompatActivity {
                 String accept = "1";
 
                 InputStream videoInputStream = getContentResolver().openInputStream(fileUri);
-                String videoFileName = action + "_" + practiceCount.getAndIncrement() + "_MUKHERJEE.mp4";
+                String videoFileName = action + "_" + practiceCount.getAndIncrement() + "_LastName.mp4";
 
                 String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
                 String CRLF = "\r\n"; // Line separator required by multipart/form-data.

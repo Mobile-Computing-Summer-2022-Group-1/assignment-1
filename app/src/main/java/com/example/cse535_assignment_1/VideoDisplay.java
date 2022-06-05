@@ -61,8 +61,9 @@ public class VideoDisplay extends AppCompatActivity {
         //TO go to the Next Page i.e Recording and Uploading Page
         practice.setOnClickListener(v -> {
             Intent intent = new Intent(VideoDisplay.this, RecordGesture.class);
-            intent.putExtra(RecordGesture.Action, action);
-            intent.putExtra(RecordGesture.ORIGINAL_VIDEO_URL, url);
+            intent.putExtra(RecordGesture.ACTION_URL, new String[]{action, url});
+//            intent.putExtra(RecordGesture.Action, action);
+//            intent.putExtra(RecordGesture.ORIGINAL_VIDEO_URL, url);
             startActivity(intent);
         });
     }
