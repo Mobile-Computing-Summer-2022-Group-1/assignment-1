@@ -5,9 +5,19 @@
    
    ```
    python3 -m venv venv
+   ```
+3. Activate virtual environment
+
+   MacOS/Unix:
+   ```
    source venv/bin/activate
    ```
-3. Install all the dependencies in **requirements.txt**:
+   
+   Windows:
+   ```
+   /path_to_virtual_env_folder/bin/activate
+   ```
+5. Install all the dependencies in **requirements.txt**:
    
    ```pip install -r requirements.txt```
 4. Create a folder **uploaded_files**
